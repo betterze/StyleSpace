@@ -8,8 +8,8 @@
 """Minimal script for generating an image using pre-trained StyleGAN generator."""
 
 import os
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = "1" #(or "1" or "2")
+#os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+#os.environ["CUDA_VISIBLE_DEVICES"] = "1" #(or "1" or "2")
 import pickle
 import numpy as np
 import PIL.Image
@@ -251,6 +251,16 @@ if __name__ == "__main__":
     num_once=1_000
 #    dataset_name='ffhq'
     dataset_name=args.dataset_name
+    
+    if not os.path.isfile('./model/'+dataset_name+'.pkl'):
+        url='https://nvlabs-fi-cdn.nvidia.com/stylegan2/networks/'
+        name='stylegan2-'+dataset_name+'-config-f.pkl'
+        os.system('wget ' +url+name + '  -P  ./model/')
+        os.system('mv ./model/'+name+' ./model/'+dataset_name+'.pkl')
+    
+    if not os.path.isdir('./npy/'+dataset_name):
+        os.system('mkdir ./npy/'+dataset_name)
+    
     
     if args.code_type=='w':
         Gs=LoadModel(dataset_name=dataset_name)
