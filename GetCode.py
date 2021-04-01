@@ -295,7 +295,7 @@ if __name__ == "__main__":
         dlatents=save_tmp[1]
         m,std=GetCodeMS(dlatents)
         save_tmp=[m,std]
-        save_name='s_mean_std'
+        save_name='S_mean_std'
         tmp='./npy/'+dataset_name+'/'+save_name
         with open(tmp, "wb") as fp:   #Pickling
             pickle.dump(save_tmp, fp)
