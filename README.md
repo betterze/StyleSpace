@@ -12,6 +12,11 @@ Zongze Wu, Dani Lischinski, Eli Shechtman <br>
 
 
 #### generated face manipulation
+
+<p align="center">
+  <img src="imgs/ffhq.png)" />
+</p>
+
 ![](imgs/ffhq.png)
 #### generated car and bed manipulation
 ![](imgs/car_bed.png)
