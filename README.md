@@ -2,7 +2,7 @@
 
 [StyleSpace Analysis: Disentangled Controls for StyleGAN Image Generation](https://arxiv.org/abs/2011.12799)  (CVPR 2021 Oral)
 
-![](img/teaser.png)
+![](imgs/disentanglement.png)
 
 > **StyleSpace Analysis: Disentangled Controls for StyleGAN Image Generationy**<br>
 Zongze Wu, Dani Lischinski, Eli Shechtman <br>
