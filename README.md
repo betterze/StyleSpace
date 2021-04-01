@@ -17,7 +17,8 @@ Zongze Wu, Dani Lischinski, Eli Shechtman <br>
   <img src="https://github.com/betterze/StyleSpace/tree/main/imgs/ffhq.png)" />
 </p>
 
-![](imgs/ffhq.png)
+
+
 #### generated car and bed manipulation
 ![](imgs/car_bed.png)
 #### real face manipulation
