@@ -114,7 +114,7 @@ def GetCode(Gs,random_state,num_img,num_once,dataset_name):
 #    dlatents=[]
     dlatents=np.zeros((num_img,512),dtype='float32')
     for i in range(int(num_img/num_once)):
-        print(i,int(num_img/num_once))
+#        print(i,int(num_img/num_once))
         src_latents =  rnd.randn(num_once, Gs.input_shape[1])
         src_dlatents = Gs.components.mapping.run(src_latents, None) # [seed, layer, component]
         
@@ -181,7 +181,7 @@ def GetImg(Gs,num_img,num_once,dataset_name,save_name='images'):
     tmp='./npy/'+dataset_name+'/'+save_name
     np.save(tmp,all_images)
 
-def GetS(dataset_name,num_img,save_name):
+def GetS(dataset_name,num_img):
     print('Generate S')
     tmp='./npy/'+dataset_name+'/W.npy'
     dlatents=np.load(tmp)[:num_img]
@@ -203,11 +203,10 @@ def GetS(dataset_name,num_img,save_name):
     
     layer_names=[layer.name for layer in select_layers1]
     save_tmp=[layer_names,all_s]
-    
-    tmp='./npy/'+dataset_name+'/'+save_name
-    with open(tmp, "wb") as fp:   #Pickling
-#    with open('/cs/labs/danix/wuzongze/Gan_Manipulation/pixel2style2pixel/results/s', "wb") as fp:   #Pickling
-        pickle.dump(save_tmp, fp)
+    return save_tmp
+#    tmp='./npy/'+dataset_name+'/'+save_name
+#    with open(tmp, "wb") as fp:   #Pickling
+#        pickle.dump(save_tmp, fp)
 
     
 
@@ -230,6 +229,25 @@ def convert_images_to_uint8(images, drange=[-1,1], nchw_to_nhwc=False):
     images=images.astype('uint8')
     return images
 
+
+def GetCodeMS(dlatents):
+        m=[]
+        std=[]
+        for i in range(len(dlatents)):
+            tmp= dlatents[i] #[:,0,0,:,0]
+            tmp_mean=tmp.mean(axis=0)
+            tmp_std=tmp.std(axis=0)
+            m.append(tmp_mean)
+            std.append(tmp_std)
+        return m,std
+#        code_mean=m
+#        code_std=std
+        
+#        code_mean2=np.concatenate(code_mean)
+#        code_std2=np.concatenate(code_std)
+        
+        
+        
 
 
 
@@ -261,14 +279,26 @@ if __name__ == "__main__":
     if not os.path.isdir('./npy/'+dataset_name):
         os.system('mkdir ./npy/'+dataset_name)
     
-    
     if args.code_type=='w':
         Gs=LoadModel(dataset_name=dataset_name)
         GetCode(Gs,random_state,num_img,num_once,dataset_name)
 #        GetImg(Gs,num_img=num_img,num_once=num_once,dataset_name=dataset_name,save_name='images_100K') #no need 
     elif args.code_type=='s':
-        GetS(dataset_name,num_img,save_name='S_100K')
-#    else:
+        save_name='S'
+        save_tmp=GetS(dataset_name,num_img=2_000)
+        tmp='./npy/'+dataset_name+'/'+save_name
+        with open(tmp, "wb") as fp:   #Pickling
+            pickle.dump(save_tmp, fp)
+        
+    elif args.code_type=='s_mean_std':
+        save_tmp=GetS(dataset_name,num_img=num_img)
+        dlatents=save_tmp[1]
+        m,std=GetCodeMS(dlatents)
+        save_tmp=[m,std]
+        save_name='s_mean_std'
+        tmp='./npy/'+dataset_name+'/'+save_name
+        with open(tmp, "wb") as fp:   #Pickling
+            pickle.dump(save_tmp, fp)
     
     
     

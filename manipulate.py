@@ -58,7 +58,7 @@ def Vis(bname,suffix,out,rownames=None,colnames=None):
 
 
 def LoadData(img_path):
-    tmp=img_path+'S_100K'
+    tmp=img_path+'S'
     with open(tmp, "rb") as fp:   #Pickling
         s_names,all_s=pickle.load( fp)
     dlatents=all_s
@@ -72,7 +72,11 @@ def LoadData(img_path):
         else:
             pindexs.append(i)
     
-    return dlatents,s_names,mindexs,pindexs
+    tmp=img_path+'S_mean_std'
+    with open(tmp, "rb") as fp:   #Pickling
+        m,std=pickle.load( fp)
+    
+    return dlatents,s_names,mindexs,pindexs,m,std
 
 
 def LoadModel(model_path,model_name):
@@ -132,7 +136,7 @@ class Manipulator():
         self.manipulate_layers=None
 #        self.classifer_path='/cs/labs/danix/wuzongze/Gan_Manipulation/interfacegan/binary_classifer/'
         
-        self.dlatents,self.s_names,self.mindexs,self.pindexs=LoadData(self.img_path)
+        self.dlatents,self.s_names,self.mindexs,self.pindexs,self.code_mean,self.code_std=LoadData(self.img_path)
         
         self.sess=tf.InteractiveSession()
         init = tf.global_variables_initializer()
@@ -283,21 +287,21 @@ class Manipulator():
         return all_s
         
     
-    def GetCodeMS(self):
-        m=[]
-        std=[]
-        for i in range(len(self.dlatents)):
-            tmp= self.dlatents[i] #[:,0,0,:,0]
-            tmp_mean=tmp.mean(axis=0)
-            tmp_std=tmp.std(axis=0)
-            m.append(tmp_mean)
-            std.append(tmp_std)
-        
-        self.code_mean=m
-        self.code_std=std
-        
-        self.code_mean2=np.concatenate(self.code_mean)
-        self.code_std2=np.concatenate(self.code_std)
+#    def GetCodeMS(self):
+#        m=[]
+#        std=[]
+#        for i in range(len(self.dlatents)):
+#            tmp= self.dlatents[i] #[:,0,0,:,0]
+#            tmp_mean=tmp.mean(axis=0)
+#            tmp_std=tmp.std(axis=0)
+#            m.append(tmp_mean)
+#            std.append(tmp_std)
+#        
+#        self.code_mean=m
+#        self.code_std=std
+#        
+#        self.code_mean2=np.concatenate(self.code_mean)
+#        self.code_std2=np.concatenate(self.code_std)
         
         
         
