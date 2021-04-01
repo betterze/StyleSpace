@@ -261,7 +261,7 @@ if __name__ == "__main__":
     
     parser.add_argument('--dataset_name',type=str,default='ffhq',
                     help='name of dataset, for example, ffhq')
-    parser.add_argument('--code_type',choices=['w','s'],default='w')
+    parser.add_argument('--code_type',choices=['w','s','s_mean_std'],default='w')
     
     args = parser.parse_args()
     random_state=5
