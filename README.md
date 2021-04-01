@@ -14,7 +14,7 @@ Zongze Wu, Dani Lischinski, Eli Shechtman <br>
 #### generated face manipulation
 
 <p align="center">
-  <img src="imgs/ffhq.png)" />
+  <img src="https://github.com/betterze/StyleSpace/tree/main/imgs/ffhq.png)" />
 </p>
 
 ![](imgs/ffhq.png)
