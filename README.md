@@ -13,10 +13,6 @@ Zongze Wu, Dani Lischinski, Eli Shechtman <br>
 
 
 #### generated face manipulation
-[//]: # (This may be the most platform independent comment
-<p align="center">
-  <img src="https://github.com/betterze/StyleSpace/tree/main/imgs/ffhq.png" alt="ffhq"/>
-</p>)
 ![](imgs/ffhq.png)
 
 #### generated car and bed manipulation
