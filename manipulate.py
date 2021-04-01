@@ -173,7 +173,7 @@ class Manipulator():
         self.img_size=self.Gs.output_shape[-1]
         
         
-        self.GetCodeMS()
+#        self.GetCodeMS()
         
     
     def GenerateImg(self,codes):
