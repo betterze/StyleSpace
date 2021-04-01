@@ -14,10 +14,14 @@ Zongze Wu, Dani Lischinski, Eli Shechtman <br>
 #### generated face manipulation
 
 <p align="center">
+  <img src="http://some_place.com/image.png" />
+</p>
+
+<p align="center">
   <img src="https://github.com/betterze/StyleSpace/tree/main/imgs/ffhq.png)" />
 </p>
 
-
+![](imgs/ffhq.png)
 
 #### generated car and bed manipulation
 ![](imgs/car_bed.png)
