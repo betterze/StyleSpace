@@ -4,7 +4,7 @@
 
 ![](imgs/disentanglement.png)
 
-> **StyleSpace Analysis: Disentangled Controls for StyleGAN Image Generationy**<br>
+> **StyleSpace Analysis: Disentangled Controls for StyleGAN Image Generation**<br>
 Zongze Wu, Dani Lischinski, Eli Shechtman <br>
 > [paper](https://arxiv.org/abs/2011.12799) (CVPR 2021 Oral) 
 > [video](https://youtu.be/U7qRotRGr1w)
