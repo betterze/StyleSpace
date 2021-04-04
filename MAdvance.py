@@ -1,10 +1,10 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Apr  4 00:12:09 2021
 
-@author: wuzongze
-"""
+import os
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1" #(or "1" or "2")
+
+import sys 
+sys.path=['', '/usr/local/tensorflow/avx-avx2-gpu/1.14.0/python3.7/site-packages', '/usr/local/matlab/2018b/lib/python3.7/site-packages', '/cs/labs/danix/wuzongze/pythonV/venv3.7/lib/python37.zip', '/cs/labs/danix/wuzongze/pythonV/venv3.7/lib/python3.7', '/cs/labs/danix/wuzongze/pythonV/venv3.7/lib/python3.7/lib-dynload', '/usr/lib/python3.7', '/cs/labs/danix/wuzongze/pythonV/venv3.7/lib/python3.7/site-packages', '/cs/labs/danix/wuzongze/pythonV/venv3.7/lib/python3.7/site-packages/copkmeans-1.5-py3.7.egg', '/cs/labs/danix/wuzongze/pythonV/venv3.7/lib/python3.7/site-packages/spherecluster-0.1.7-py3.7.egg', '/usr/lib/python3/dist-packages', '/usr/local/lib/python3.7/dist-packages', '/usr/lib/python3/dist-packages/IPython/extensions']
 
 
 from manipulate import Manipulator
@@ -51,6 +51,9 @@ class MAdvance(Manipulator):
             
         self.all_semantic_top2=np.concatenate(all_semantic_top)
         self.num_semantic=self.all_semantic_top2.shape[1] #ignore low frequency area, bed 10
+        
+        tmp=pd.read_csv(self.img_path+'label')
+        self.label=tmp['names']
     
     def RemovePG(self,l_p,findex=None): #l_p or indexs2
         for i in self.pindexs:
@@ -223,4 +226,47 @@ if __name__ == "__main__":
         codes,out=M.EditOneC(bname)
         tmp=str(M.manipulate_layers)+'_'+str(bname)
         M.Vis(tmp,'c',out)
+    #%%
+    
+    with open(M.img_path+'gradient_mask_32/0', 'rb') as handle:
+        var_grad = pickle.load(handle)
+    
+    out_size=32
+    var_grad2=[]
+    for layer_g in var_grad:
+        num_images,num_c,_=layer_g.shape
+        mask=layer_g.reshape((num_images,num_c,3,out_size,out_size))
+        mask2=np.abs(mask).mean(axis=2) #mean per pixel (32,32) gradient
+        tmp=mask2.max()
+        mask3=mask2/tmp*255
+        mask4=mask3.astype('uint8') #we dont this just to reduce the size of output. To get better visualization, please use mask2 
+        var_grad2.append(mask4)
+    
+#    tmp=var_grad2[6][1,501]
+#    plt.imshow(tmp)
+    
+    with open(M.img_path+'/grad_example', 'wb') as handle:
+        pickle.dump(var_grad2, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    #%%
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
