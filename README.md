@@ -1,7 +1,7 @@
 # StyleSpace Analysis: Disentangled Controls for StyleGAN Image Generation 
 
 Demo video: <a href="https://youtu.be/U7qRotRGr1w"><img src="https://img.shields.io/badge/-YouTube-red?&style=for-the-badge&logo=youtube&logoColor=white" height=20></a>
-CVPR 2021 Oral: <a href="https://arxiv.org/abs/2011.12799"><img src="https://en.wikipedia.org/wiki/ArXiv#/media/File:ArXiv_web.svg" height=20></a>
+CVPR 2021 Oral: <a href="https://arxiv.org/abs/2011.12799"><img src="https://upload.wikimedia.org/wikipedia/commons/a/a8/ArXiv_web.svg" height=20></a>
 Single Channel Manipulation: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://github.com/betterze/StyleSpace/blob/main/StyleSpace_single.ipynb)
 
 
