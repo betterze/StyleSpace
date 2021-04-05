@@ -115,7 +115,7 @@ class MAdvance(Manipulator):
         tmp=self.w[positive_indexs] #only use 50 images
         tmp=tmp[:,None,:]
         w_plus=np.tile(tmp,(1,self.Gs.components.synthesis.input_shape[1],1))
-        tmp_dlatents=M.W2S(w_plus)
+        tmp_dlatents=self.W2S(w_plus)
         
         positive_train=[tmp for tmp in tmp_dlatents]
         return positive_train,positive_indexs
