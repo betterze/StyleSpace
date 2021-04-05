@@ -7,6 +7,10 @@ Single Channel Manipulation: [![Open In Colab](https://colab.research.google.com
 Localized or attribute specific Manipulation: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://github.com/betterze/StyleSpace/blob/main/StyleSpace_advance.ipynb)
 
 
+<p align="center">
+  <a href="https://youtu.be/U7qRotRGr1w"><img src='https://github.com/betterze/StyleSpace/blob/main/imgs/stylespace_short.gif' width=600 ></a>
+</p>
+
 ![](imgs/disentanglement.png)
 
 > **StyleSpace Analysis: Disentangled Controls for StyleGAN Image Generation**<br>
