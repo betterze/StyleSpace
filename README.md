@@ -98,7 +98,7 @@ cd .. #back to root folder StyleSpace
 sbatch bash_script/align_mask.sh
 ```
 
-5. Calculate the percentage of most activated regions for each channel 
+5. Calculate the percentage of most activated regions for each channel. The output semantic_top_32 file contain the annotation for each channel, please refer to [this nootbook](https://github.com/betterze/StyleSpace/blob/main/StyleSpace_advance.ipynb) for visualizing the effect of most activated channels in each semantic region. 
 ```
 python semantic_channel.py -align_folder './npy/ffhq/align_mask_32'  -s_path './npy/ffhq/S' -save_folder  './npy/ffhq/' 
 ```
