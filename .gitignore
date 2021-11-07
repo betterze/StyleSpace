@@ -1,6 +1,6 @@
 # Ignore everything in this directory
-./metrics_checkpoint
-./face_parsing
+metrics_checkpoint/
+face_parsing/
 
 # Except this file
 !.gitignore
