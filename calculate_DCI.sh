@@ -16,7 +16,6 @@ python GetCode.py --dataset_name $dataset_name --output_path $output_path --code
 img_path=$output_path'/images_100K.npy'
 save_path=$output_path'/attribute'
 classifer_path='./metrics_checkpoint'
-classifer_path='/cs/labs/danix/wuzongze/Gan_Manipulation/interfacegan/binary_classifer'
 python GetAttribute.py -img_path  $img_path -save_path $save_path -classifer_path $classifer_path
 
 

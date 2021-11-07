@@ -1,4 +1,6 @@
 # Ignore everything in this directory
+./metrics_checkpoint
+
 
 # Except this file
 !.gitignore
