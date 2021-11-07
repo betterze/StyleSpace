@@ -9,7 +9,7 @@ dataset_name='ffhq'
 output_path='./npy/ffhq_NT'
 python GetCode.py --dataset_name $dataset_name --output_path $output_path --code_type 'w' --no_truncation
 python GetCode.py --dataset_name $dataset_name --output_path $output_path --code_type 's_flat' 
-python GetCode.py --dataset_name $dataset_name --output_path $output_path --code_type 'images'  --resize 256
+python GetCode.py --dataset_name $dataset_name --output_path $output_path --code_type 'images_100K'  --resize 256
 
 # 3.Annotate the images using pretrained classifers.
 img_path=$output_path'/images_100K.npy'

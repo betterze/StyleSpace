@@ -8,8 +8,8 @@ Created on Wed Jun 24 22:33:26 2020
 
 
 import os
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = "1" #(or "1" or "2")
+#os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+#os.environ["CUDA_VISIBLE_DEVICES"] = "1" #(or "1" or "2")
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -22,18 +22,6 @@ import time
 from manipulate import convert_images_to_uint8
 import argparse
 from skimage.transform import resize
-
-def LoadModel(dataset_name):
-    # Initialize TensorFlow.
-    tflib.init_tf()
-    model_path='./model/'
-#    model_name='stylegan2-'+dataset_name+'-config-f.pkl'
-    model_name=dataset_name+'.pkl'
-    
-    tmp=os.path.join(model_path,model_name)
-    with open(tmp, 'rb') as f:
-        _, _, Gs = pickle.load(f)
-    return Gs
 
 from tensorflow.python.ops.gradient_checker import _compute_dx_and_dy,_compute_theoretical_jacobian
 from tensorflow.python.framework import dtypes
@@ -163,13 +151,7 @@ def ShowMask(img,jacob_t,lindex,cindex,out_size,img_size):
     
     mask2 = resize(mask, (img_size,img_size),
                        anti_aliasing=True)
-    
-#    import cv2 as cv
-    
     img2=convert_images_to_uint8(img, nchw_to_nhwc=True)[0]
-#    img2=np.transpose(img, [0, 2, 3, 1])[0]
-#    alpha=0.5
-#    dst = cv.addWeighted(img2, alpha, mask2, 1-alpha, 0.0)    #%%
     import matplotlib.cm as cm
     from vis.visualization import overlay
     jet_heatmap = np.uint8(cm.jet(mask2)[..., :3] * 255)
@@ -184,74 +166,69 @@ def ShowMask(img,jacob_t,lindex,cindex,out_size,img_size):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='predict pose of object')
+    
+    parser.add_argument('-model_path',default='./model/ffhq.pkl',type=str,help='path to model file') 
+    parser.add_argument('-data_path',default='./npy/ffhq',type=str,help='path to model file') 
+    
     parser.add_argument('-img_sindex',default='0',type=str,help='path to model file') 
     parser.add_argument('-num_per',default='4',type=str,help='path to model file') 
-    parser.add_argument('-dataset_name',default='ffhq',type=str,help='path to model file') 
-    parser.add_argument('--remove_trgb', action='store_true')
+    parser.add_argument('-include_trgb', action='store_true')
     
     opt = parser.parse_args()
     
+    out_size=32
+    batch_size=1
     
     
     #%%
-    dataset_name=opt.dataset_name
-    remove_trgb=opt.remove_trgb
-    Gs=LoadModel(dataset_name)
+    
+    tflib.init_tf()
+    with open(opt.model_path, 'rb') as f:
+        _, _, Gs = pickle.load(f)
     
     img_size=Gs.output_shape[-1]
-    out_size=32
-    
-    batch_size=1
     pool_size=int(img_size/out_size)
     Gs._get_vars()
     
-    
-#    model_name='stylegan2-ffhq-config-f.pkl'
-    tmp='./npy/'+dataset_name+'/'
-    with open(tmp+'S_100K', "rb") as fp:   #Pickling
+    tmp=os.path.join(opt.data_path,'S')
+    with open(tmp, "rb") as fp: 
         s_names,all_s=pickle.load( fp)
     
-    
-    dlatents=np.load(tmp+'W.npy')[:,None,:] #[:,0]
+    tmp=os.path.join(opt.data_path,'W.npy')
+    dlatents=np.load(tmp)[:,None,:]
     dlatents=np.tile(dlatents,(1,Gs.components.synthesis.input_shape[1],1))
-    
-
-    layer_num=Gs.components.synthesis.input_shape[1]
-#    layer_num=int((len(s_names)+1)/3*2)
-    print('layer_num: ', str(layer_num))
     
     
     #%%
-    s_names3=[]
-#    all_s2=[]
+    s_names_full=[]
     for i in range(len(s_names)):
         sname=s_names[i]
         sname1=sname.split('/')[1:]
-#        if remove_trgb and sname1[1]=='ToRGB':
-#            continue
-#        all_s2.append(all_s[i])
         sname2=['G_synthesis_2']+sname1
         sname3='/'.join(sname2)
-        s_names3.append(sname3)
+        s_names_full.append(sname3)
     
-    s_names2=[]
-    for tmp in s_names3:
-        if not 'ToRGB' in tmp:
-            s_names2.append(tmp)
+    if opt.include_trgb:
+        s_names2=s_names_full
+    else:
+        s_names2=[]
+        for tmp in s_names_full:
+            if not 'ToRGB' in tmp:
+                s_names2.append(tmp)
     #%%
-    
+    layer_num=Gs.components.synthesis.input_shape[1]
     model_input=tf.placeholder(dtype='float32',shape=(1,layer_num,512),name='model_input')
     
     model_output=Gs.components.synthesis.get_output_for(model_input)
     
     model_output2=tf.keras.layers.AveragePooling2D(pool_size=pool_size, strides=pool_size,
                                                    padding='valid',data_format='channels_first')(model_output)
-    print(model_output2.shape)
+    print('gradient shape',model_output2.shape)
     assert(model_output2.shape[-1]==out_size)
     
     watch_s=[]
     for i in range(len(s_names2)):
-         tmp= tf.get_default_graph().get_tensor_by_name(s_names2[i]) #[:,0,0,channel_index,0]
+         tmp= tf.get_default_graph().get_tensor_by_name(s_names2[i])
          watch_s.append(tmp)
     
     watch_s_size=[]
@@ -268,8 +245,8 @@ if __name__ == "__main__":
         
         d={}
         d['model_input:0']=dlatents[img_index:(img_index+batch_size),:,:] #[img_index:(img_index+batch_size),0,:,:]
-        for i in range(len(s_names2)):
-            d[s_names3[i]]=all_s[i][img_index:(img_index+batch_size)]
+        for i in range(len(s_names_full)):
+            d[s_names_full[i]]=all_s[i][img_index:(img_index+batch_size)]
         d['G_synthesis_2/4x4/Const/Shape:0']=np.array([batch_size,18,  512], dtype=np.int32)
         
         img= Gs.components.synthesis.run(d['model_input:0']) 
@@ -277,7 +254,7 @@ if __name__ == "__main__":
         
         watch_s_value=[]
         for i in range(len(s_names2)):
-             tmp= d[s_names2[i]] #[:,0,0,channel_index,0]
+             tmp= d[s_names2[i]]
              watch_s_value.append(tmp)
         
         var_grad=compute_gradient2(x=watch_s,x_shape=watch_s_size,y=model_output2,y_shape=(1,3,out_size,out_size),
@@ -292,10 +269,10 @@ if __name__ == "__main__":
     
     #%%
     
-    
-    
-    save_path='./npy/'+dataset_name+'/gradient_mask_32/'
-    with open(save_path+opt.img_sindex, 'wb') as handle:
+    tmp=os.path.join(opt.data_path,'gradient_mask_32')
+    os.makedirs(tmp, exist_ok = True) 
+    tmp1=os.path.join(tmp,opt.img_sindex)
+    with open(tmp1, 'wb') as handle:
         pickle.dump(all_var_grad, handle, protocol=pickle.HIGHEST_PROTOCOL)
         
         
