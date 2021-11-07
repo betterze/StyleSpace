@@ -103,7 +103,18 @@ sbatch bash_script/align_mask.sh
 python semantic_channel.py -align_folder './npy/ffhq/align_mask_32'  -s_path './npy/ffhq/S' -save_folder  './npy/ffhq/' 
 ```
 
+# Attribute specific channels
 
+To get the attribute specific channels (for example, channels for smiling), we need to use classifers to annotate a set of generated images. Please refer to [this part](https://github.com/betterze/StyleSpace#dci-metric) to download the classifers (1), and annotate the images (3). The only difference is that when generating images, we use trication trick (remove the  --no_truncation flag) as following:
+
+```
+dataset_name='ffhq' 
+output_path='./npy/ffhq'
+python GetCode.py --dataset_name $dataset_name --code_type 'w' 
+python GetCode.py --dataset_name $dataset_name --code_type 'images'  --resize 256
+```
+
+After obtaining the attribue file, please refer to [this nootbook](https://github.com/betterze/StyleSpace/blob/main/StyleSpace_advance.ipynb) for visualizing the effect of most activated channels of a certrain attribute.
 
 
 
