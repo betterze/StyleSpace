@@ -91,7 +91,7 @@ if __name__ == "__main__":
     #%%
     out_size=32
     
-    dataset_name='dog256'
+    dataset_name='dog'
     
 #    if dataset_name=='ffhq':
 #        num_semantic=19

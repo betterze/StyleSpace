@@ -1,3 +1,6 @@
+import os
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1" #(or "1" or "2")
 
 
 import os
@@ -7,6 +10,7 @@ from dnnlib import tflib
 import tensorflow as tf 
 
 import argparse
+from PIL import Image
 
 def LoadModel(dataset_name):
     # Initialize TensorFlow.
@@ -72,11 +76,12 @@ def GetKName(Gs):
             select_layers.append(layer)
     return select_layers
 
-def GetCode(Gs,random_state,num_img,num_once,dataset_name):
+def GetCode(Gs,random_state,num_img,num_once,truncation=True):
     rnd = np.random.RandomState(random_state)  #5
     
-    truncation_psi=0.7
-    truncation_cutoff=8
+    if truncation:
+        truncation_psi=0.7
+        truncation_cutoff=8
     
     dlatent_avg=Gs.get_var('dlatent_avg')
     
@@ -86,22 +91,23 @@ def GetCode(Gs,random_state,num_img,num_once,dataset_name):
         src_dlatents = Gs.components.mapping.run(src_latents, None) # [seed, layer, component]
         
         # Apply truncation trick.
-        if truncation_psi is not None and truncation_cutoff is not None:
-                layer_idx = np.arange(src_dlatents.shape[1])[np.newaxis, :, np.newaxis]
-                ones = np.ones(layer_idx.shape, dtype=np.float32)
-                coefs = np.where(layer_idx < truncation_cutoff, truncation_psi * ones, ones)
-                src_dlatents_np=lerp(dlatent_avg, src_dlatents, coefs)
-                src_dlatents=src_dlatents_np[:,0,:].astype('float32')
-                dlatents[(i*num_once):((i+1)*num_once),:]=src_dlatents
+        if truncation:
+            layer_idx = np.arange(src_dlatents.shape[1])[np.newaxis, :, np.newaxis]
+            ones = np.ones(layer_idx.shape, dtype=np.float32)
+            coefs = np.where(layer_idx < truncation_cutoff, truncation_psi * ones, ones)
+            src_dlatents=lerp(dlatent_avg, src_dlatents, coefs)
+            
+        src_dlatents=src_dlatents[:,0,:].astype('float32')
+        dlatents[(i*num_once):((i+1)*num_once),:]=src_dlatents
     print('get all z and w')
+    print('truncation: '+str(truncation))
     
-    tmp='./npy/'+dataset_name+'/W'
-    np.save(tmp,dlatents)
+    return dlatents
 
     
-def GetImg(Gs,num_img,num_once,dataset_name,save_name='images'):
+def GetImg(Gs,num_img,num_once,output_path,resize=None):
     print('Generate Image')
-    tmp='./npy/'+dataset_name+'/W.npy'
+    tmp=output_path+'/W.npy'
     dlatents=np.load(tmp) 
     fmt = dict(func=tflib.convert_images_to_uint8, nchw_to_nhwc=True)
     
@@ -114,6 +120,12 @@ def GetImg(Gs,num_img,num_once,dataset_name,save_name='images'):
             tmp=tmp[None,None,:]
             tmp=np.tile(tmp,(1,Gs.components.synthesis.input_shape[1],1))
             image2= Gs.components.synthesis.run(tmp, randomize_noise=False, output_transform=fmt)
+            
+            if resize is not None:
+                img=Image.fromarray(image2[0]).resize((resize,resize),Image.LANCZOS)
+                img=np.array(img)
+                image2=img[None,:]
+            
             images.append(image2)
             
         images=np.concatenate(images)
@@ -122,12 +134,11 @@ def GetImg(Gs,num_img,num_once,dataset_name,save_name='images'):
         
     all_images=np.concatenate(all_images)
     
-    tmp='./npy/'+dataset_name+'/'+save_name
-    np.save(tmp,all_images)
+    return all_images
 
-def GetS(dataset_name,num_img):
+def GetS(output_path,num_img):
     print('Generate S')
-    tmp='./npy/'+dataset_name+'/W.npy'
+    tmp=output_path+'/W.npy'
     dlatents=np.load(tmp)[:num_img]
     
     with tf.Session() as sess:
@@ -187,13 +198,29 @@ if __name__ == "__main__":
     
     parser.add_argument('--dataset_name',type=str,default='ffhq',
                     help='name of dataset, for example, ffhq')
-    parser.add_argument('--code_type',choices=['w','s','s_mean_std'],default='w')
+    parser.add_argument('--code_type',choices=['w','s','s_mean_std','s_flat','images'],default='w')
+    
+    parser.add_argument('--no_truncation', action='store_false')
+    
+    parser.add_argument('--output_path',type=str,default=None,
+                    help='root output path')
+    
+    parser.add_argument('--resize',type=int,default=None,
+                    help='save image size')
+    
     
     args = parser.parse_args()
     random_state=5
     num_img=100_000 
     num_once=1_000
     dataset_name=args.dataset_name
+    truncation=args.no_truncation
+    output_path=args.output_path
+    
+    if args.output_path is None:
+        output_path='./npy/'+dataset_name
+    print('output_path:',output_path)
+    
     
     if not os.path.isfile('./model/'+dataset_name+'.pkl'):
         url='https://nvlabs-fi-cdn.nvidia.com/stylegan2/networks/'
@@ -201,30 +228,51 @@ if __name__ == "__main__":
         os.system('wget ' +url+name + '  -P  ./model/')
         os.system('mv ./model/'+name+' ./model/'+dataset_name+'.pkl')
     
-    if not os.path.isdir('./npy/'+dataset_name):
-        os.system('mkdir ./npy/'+dataset_name)
+    
+    if not os.path.isdir(output_path):
+        os.system('mkdir '+output_path)
     
     if args.code_type=='w':
         Gs=LoadModel(dataset_name=dataset_name)
-        GetCode(Gs,random_state,num_img,num_once,dataset_name)
-#        GetImg(Gs,num_img=num_img,num_once=num_once,dataset_name=dataset_name,save_name='images_100K') #no need 
+        dlatents=GetCode(Gs,random_state,num_img,num_once,truncation)
+        
+        tmp=output_path+'/W'
+        np.save(tmp,dlatents)
+        
+        
     elif args.code_type=='s':
         save_name='S'
-        save_tmp=GetS(dataset_name,num_img=2_000)
-        tmp='./npy/'+dataset_name+'/'+save_name
+        save_tmp=GetS(output_path,num_img=2_000)
+        tmp=output_path+'/'+save_name
         with open(tmp, "wb") as fp:
             pickle.dump(save_tmp, fp)
         
     elif args.code_type=='s_mean_std':
-        save_tmp=GetS(dataset_name,num_img=num_img)
+        save_tmp=GetS(output_path,num_img=num_img)
+        
         dlatents=save_tmp[1]
         m,std=GetCodeMS(dlatents)
         save_tmp=[m,std]
         save_name='S_mean_std'
-        tmp='./npy/'+dataset_name+'/'+save_name
+        tmp=output_path+'/'+save_name
         with open(tmp, "wb") as fp:
             pickle.dump(save_tmp, fp)
+            
+    elif args.code_type=='s_flat':
+        save_tmp=GetS(output_path,num_img=num_img)
+        dlatents=save_tmp[1]
+        dlatents=np.concatenate(dlatents,axis=1)
+        
+        tmp=output_path+'/S_Flat'
+        np.save(tmp,dlatents)
     
+    elif args.code_type=='images':
+        Gs=LoadModel(dataset_name=dataset_name)
+        all_images=GetImg(Gs,num_img=num_img,num_once=num_img,output_path=output_path,resize=args.resize)
+        
+        
+        tmp=output_path+'/images_100K'
+        np.save(tmp,all_images)
     
     
     
