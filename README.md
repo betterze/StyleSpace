@@ -118,7 +118,6 @@ python GetCode.py --dataset_name $dataset_name --code_type 'w'
 python GetCode.py --dataset_name $dataset_name --code_type 'images'  --resize 256
 ```
 
-Please refer to [DCI](https://github.com/betterze/StyleSpace#dci-metric) to annotate the images using pretrained classifers.
 After obtaining the attribue file, please refer to [this nootbook](https://github.com/betterze/StyleSpace/blob/main/StyleSpace_advance.ipynb) for visualizing the effect of most activated channels of a certrain attribute.
 
 
